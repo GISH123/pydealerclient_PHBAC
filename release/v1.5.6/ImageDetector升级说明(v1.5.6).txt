@@ -1,0 +1,119 @@
+升级文件：ImageDetector_update_v156.zip，用于在v1.5.1的基础上升级。ImageDetector_v156是一个完整的版本。
+位置：现场测试电脑D:\\Greg\v1.5.6
+升级范围：仅B004识别电脑。
+改动要点：
+1. 采用共享目录来上传截图，兼容FTP上传方式。
+
+升级前验证步骤：
+1. 找一台测试用电脑，硬件配置跟B004识别电脑相同。
+2. 拷贝D:\Greg\ImageDetector_v156，放到D:\ImageDetector_v156。
+3. 修改D:\ImageDetector_v156\models\videllist.xml
+    stream="rtmp://g01.gyzgyy.cn/tz04/8-4tx"
+4. 映射网络目录。
+\\192.168.22.40\image 映射到本机Z:盘。网络登录：tx / 495992ce9776a80947c01ae200d4a1d4
+
+请依次启动荷官端软件，识别软件。但不必启动ImageUploader软件进程。
+验证要点：1. 一局完成后，在Z:目录下，是否有<局号>.jpg图片生成。
+                 2. 请访问http://uatimg.ms359.live:10088/img/<局号>.jpg，确认是否能看到图片正常显示。
+                 这里局号是泛指，请用真正的局号比如MD08922A23004代替。
+通过测试后，此测试电脑请保留备用。
+
+正式升级线上B004识别程序步骤：
+1. 备份B004识别电脑上的识别程序。
+2. 从测试电脑上拷贝D:\ImageDetector_v156。原来的D:\ImageDetector程序暂时改名为D:\ImageDetector_bak
+3. 修改D:\ImageDetector_v156\models\videllist.xml
+    stream="0"	//切记，为"0"表示从本机PCI采集卡读取数据。
+4. 映射网络目录。
+\\192.168.22.40\image 映射到本机Z:盘。网络登录：tx / 495992ce9776a80947c01ae200d4a1d4
+
+请依次启动荷官端软件，识别软件。不要启动ImageUploader软件进程。
+启动ImageDetector.exe的方法跟此前完全一样，同样的方法生成定位文件。
+验证要点：1. 一局完成后，在Z:\\目录下，是否有<局号>.jpg图片生成。
+                 2. 请访问http://uatimg.ms359.live:10088/img/<局号>.jpg，确认是否能看到图片正常显示。
+                 这里局号是泛指，请用真正的局号比如MD08922A23004代替。
+
+升级检查要点：
+1. config.xml中 <save folder="Z:" autoUpload="0"/>     //这里记得用网络映射目录盘符。autoUpload="0"表示用共享目录。而autoUpload="1"则表示用FTP上传。
+2. \models\videllist.xml中
+stream="0"	//切记，为"0"表示从本机PCI采集卡读取数据。
+3. 不要启动ImageUploader软件进程。
+
+
+常见故障排查及处理建议：
+1. 点击ImageDetector.exe后无法启动。
+请在D:\ImageDetector\log\下面找到相应的log文件查看。通常情况下是配置不正确引起的。
+2. ImageDetector.exe启动后过段时间自动消失。
+根据上次的经验看，此时磁盘的I/O占用率超过100%。应该是磁盘老化所致，更换电脑可解决。
+
+log文件关键信息解释
+2022-11-03 16:27:12.782 [INFO][MainThread] gmSaveFinalResult, gmcode=(b'MD08622B0300L\x00',), len(scanmap)=4, gmCount=2
+>> 保存这一局最终结果数据。gmCount表示当天的局数。只要ImageDetector没有重启，这个局数就是准确的。
+
+2022-11-03 16:27:12.797 [INFO][MainThread] csvtooler.tocsv to save csvfile.
+2022-11-03 16:27:12.805 [INFO][MainThread] clearCarMap, gmcode=b'MD08622B0300L\x00'
+2022-11-03 16:27:12.853 [INFO][PoolThread-twisted.internet.reactor-0] ImageUploader.exe MD08622B0300L.jpg ./predict_images/2022-11-03/MD08622B0300L.jpg MD08622B0300L
+>>调用ImageUploader.exe来打水印和FTP上传。从log时间可见获得最终的结果数据到上传，只相差100ms左右。
+
+2022-11-03 16:27:12.892610 [INFO][  APP][00001][main.go:42]Load conf/app.ini successfully.
+2022-11-03 16:27:12.892610 [INFO][  APP][00001][main.go:46]Ftp Upload Path= D:\\ImageDetector\\predict_images, interval= 1 s, protocol= ftp
+2022-11-03 16:27:12.895282 [INFO][  APP][00001][upload.go:233]FTP: 192.168.22.40:2121 connected.
+>> 表明FTP上传完成。
+
+2022-11-03 16:27:17.782 [INFO][MainThread] dataReceived, cmd=0xba0004, size=28, seq=0
+2022-11-03 16:27:17.782 [INFO][MainThread] dataReceived, cmd=0xba0004 seq=0 body=b'MD08622B0300L\x00\x00\x00'
+2022-11-03 16:27:17.782 [INFO][MainThread] cmd=0xba0004 seq=0 body=b'MD08622B0300L\x00\x00\x00'(16)
+2022-11-03 16:27:17.783 [INFO][MainThread] onStopPredict, gmcode=b'MD08622B0300L\x00', gmstate=0
+>> 荷官按下确认键，这一局结束。
+
+2022-11-03 16:27:17.783 [INFO][MainThread] datamanager stopPredict, gmcode=, cardcount=0, gmstate=0
+2022-11-03 16:27:19.421 [INFO][MainThread] dataReceived, cmd=0xba0004, size=28, seq=0
+2022-11-03 16:27:19.421 [INFO][MainThread] dataReceived, cmd=0xba0004 seq=0 body=b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+2022-11-03 16:27:19.421 [INFO][MainThread] cmd=0xba0004 seq=0 body=b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'(16)
+2022-11-03 16:27:19.421 [INFO][MainThread] onStopPredict, gmcode=b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00', gmstate=0
+2022-11-03 16:27:19.422 [INFO][MainThread] datamanager stopPredict, gmcode=, cardcount=0, gmstate=0
+2022-11-03 16:27:22.752 [INFO][MainThread] ping....
+2022-11-03 16:27:32.951 [INFO][MainThread] ping....
+2022-11-03 16:27:42.952 [INFO][MainThread] ping....
+2022-11-03 16:27:43.669 [INFO][MainThread] dataReceived, cmd=0xba0003, size=28, seq=0
+2022-11-03 16:27:43.669 [INFO][MainThread] dataReceived, cmd=0xba0003 seq=0 body=b'MD08622B0300M\x00\x00\x02'
+2022-11-03 16:27:43.669 [INFO][MainThread] cmd=0xba0003 seq=0 body=b'MD08622B0300M\x00\x00\x02'(16)
+2022-11-03 16:27:43.669 [INFO][MainThread] onStartPredict, gmcode=b'MD08622B0300M\x00', gmstate=2
+>> 下一局开始识别。与上一局获得最终结果相比，过去了约30s。
+
+2022-11-03 16:27:43.669 [INFO][MainThread] datamanager start predict, gmcode=, cardcount=0, gmstate=2
+2022-11-03 16:27:43.669 [INFO][MainThread] dataReceived, cmd=0xba0006, size=28, seq=0
+2022-11-03 16:27:43.669 [INFO][MainThread] dataReceived, cmd=0xba0006 seq=0 body=b'MD08622B0300M\x00\x00\x01'
+2022-11-03 16:27:43.669 [INFO][MainThread] cmd=0xba0006 seq=0 body=b'MD08622B0300M\x00\x00\x01'(16)
+2022-11-03 16:27:43.669 [INFO][MainThread] CMD_DISPATCH_INDEX, gmcode=b'MD08622B0300M\x00' index=1
+2022-11-03 16:27:43.669 [INFO][MainThread] onDispatchCard, gmcode=b'MD08622B0300M\x00' index=1
+2022-11-03 16:27:43.669 [INFO][MainThread] dispatchCardNoLock, gmcode=b'MD08622B0300M\x00', gmtype=BAC, self.curcardlist=0, index=1
+2022-11-03 16:27:43.743 [INFO][PoolThread-twisted.internet.reactor-1] do_predict_one_label finished, gmcode=b'MD08622B0300M\x00', index=1, span=65ms
+>> span是指识别出这一张扑克牌的时间。通常在60ms左右。
+
+2022-11-03 16:27:43.743 [INFO][PoolThread-twisted.internet.reactor-1] card:fang_5, suites_classid=15, suites_score:0.9995,cardval_classid=5, cardval_score:0.9995 
+2022-11-03 16:27:43.743 [INFO][PoolThread-twisted.internet.reactor-1] datamanager saveDataToCsv, gmcode=b'MD08622B0300M\x00', index=1, cardVal=21
+2022-11-03 16:27:43.789 [INFO][PoolThread-twisted.internet.reactor-1] do_predict_one_label finished, gmcode=b'MD08622B0300M\x00', index=3, span=45ms
+2022-11-03 16:27:43.789 [INFO][PoolThread-twisted.internet.reactor-1] card:hong_9, suites_classid=16, suites_score:0.9972,cardval_classid=9, cardval_score:0.9972 
+2022-11-03 16:27:43.790 [INFO][PoolThread-twisted.internet.reactor-1] datamanager saveDataToCsv, gmcode=b'MD08622B0300M\x00', index=3, cardVal=57
+2022-11-03 16:27:43.849 [INFO][PoolThread-twisted.internet.reactor-1] do_predict_one_label finished, gmcode=b'MD08622B0300M\x00', index=1, span=48ms
+2022-11-03 16:27:43.849 [INFO][PoolThread-twisted.internet.reactor-1] card:fang_5, suites_classid=15, suites_score:0.9995,cardval_classid=5, cardval_score:0.9995 
+2022-11-03 16:27:43.849 [INFO][PoolThread-twisted.internet.reactor-1] datamanager saveDataToCsv, gmcode=b'MD08622B0300M\x00', index=1, cardVal=21
+2022-11-03 16:27:43.897 [INFO][PoolThread-twisted.internet.reactor-1] do_predict_one_label finished, gmcode=b'MD08622B0300M\x00', index=3, span=47ms
+2022-11-03 16:27:43.898 [INFO][PoolThread-twisted.internet.reactor-1] card:hong_9, suites_classid=16, suites_score:0.9972,cardval_classid=9, cardval_score:0.9972 
+2022-11-03 16:27:43.898 [INFO][PoolThread-twisted.internet.reactor-1] datamanager saveDataToCsv, gmcode=b'MD08622B0300M\x00', index=3, cardVal=57
+2022-11-03 16:27:43.958 [INFO][PoolThread-twisted.internet.reactor-1] do_predict_one_label finished, gmcode=b'MD08622B0300M\x00', index=1, span=48ms
+2022-11-03 16:27:43.958 [INFO][PoolThread-twisted.internet.reactor-1] card:fang_5, suites_classid=15, suites_score:0.9995,cardval_classid=5, cardval_score:0.9995 
+2022-11-03 16:27:43.958 [INFO][PoolThread-twisted.internet.reactor-1] datamanager saveDataToCsv, gmcode=b'MD08622B0300M\x00', index=1, cardVal=21
+2022-11-03 16:27:44.005 [INFO][PoolThread-twisted.internet.reactor-1] do_predict_one_label finished, gmcode=b'MD08622B0300M\x00', index=3, span=47ms
+2022-11-03 16:27:44.005 [INFO][PoolThread-twisted.internet.reactor-1] card:hong_9, suites_classid=16, suites_score:0.9972,cardval_classid=9, cardval_score:0.9972 
+2022-11-03 16:27:44.005 [INFO][PoolThread-twisted.internet.reactor-1] datamanager saveDataToCsv, gmcode=b'MD08622B0300M\x00', index=3, cardVal=57
+2022-11-03 16:27:44.075 [INFO][PoolThread-twisted.internet.reactor-1] do_predict_one_label finished, gmcode=b'MD08622B0300M\x00', index=1, span=48ms
+2022-11-03 16:27:44.075 [INFO][PoolThread-twisted.internet.reactor-1] card:fang_5, suites_classid=15, suites_score:0.9995,cardval_classid=5, cardval_score:0.9995 
+
+实测共享目录方式和FTP上传方式，识别程序效率差不多，都在50ms左右。
+
+
+
+
+
+
